@@ -2,26 +2,38 @@
 This module contains the ESPNPlayer class which is a subclass of Player.
 """
 import re
+from typing import Any, Dict, List
 
 from mtbl_playerkit import Player
 
 
 class ESPNPlayer(Player):
-    def __init__(self, *args, name, team, ovr, owner, player_rater, espn_id, **kwargs):
-        super().__init__(name, team, *args, **kwargs)
-        self.ovr = ovr
-        self.owner = owner
-        self.player_rater = player_rater or {}
-        self.espn_id = espn_id
+    """
+    This class represents a player from ESPN.
+    """
+    owner: str
+    ovr: int
+    positions: List[str] = []
+    player_rater: Dict[str, Any] = {}
+    espn_id: str
 
     @classmethod
-    def from_data(cls, data: list, espn_id: str):
+    def from_data(cls, data: list):
         """
         Creates an ESPNPlayer object from a list of HTML data.
         :param data: HTML data from ESPN
-        :param espn_id: string representing the ESPN ID of the player
         :return: None
         """
+        id_loc: str = (data[1].find("img").get("data-src")
+                       or
+                       data[1].find("img").get("src"))
+        try:
+            espn_id = re.findall(r'full/(\d+)\.png', id_loc)[0]
+        except IndexError as ie:
+            print(
+                f"Error processing html for {data[1].get_text(strip=True)}."
+                f"Error message: {ie}")
+            raise IndexError("Could not find ESPN ID")
         name = data[1].find("a", class_="AnchorLink").get_text(strip=True)
         ovr = int(data[0].text)
         regex_pos = re.compile(".*playerpos.*")
@@ -49,13 +61,12 @@ class ESPNPlayer(Player):
 def add_player_rater_data(data: list, positions: list) -> dict[str: float]:
     """
     Adds player rater data to the player object.
-    :param data: list of HTML data from ESPN
-    :param positions:
+    :param data: list of HTML <td> tags data from ESPN
+    :param positions: [string] of player positions
     :return: dictionary of player rater data
     """
     player_rater = {}
     for d in data:
-        cat = ""
         try:
             cat = d.find("div")["title"]
         except KeyError:  # indicates no title attribute is found
