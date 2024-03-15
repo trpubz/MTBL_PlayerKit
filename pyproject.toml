@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mtbl-playerkit"
-version = "0.2.0"
+version = "0.1.0"
 description = "MTBL Player Kit which manages data conformity for various player sources"
 authors = ["Taylor Pubins <tpubz@icloud.com>"]
 readme = "README.md"

@@ -46,7 +46,7 @@ class TestESPNPlayer:
             "ovr": 99,
             "owner": "TeamOwner",
             "positions": ["OF"],
-            "player_stats": {"AVG": ".280"},
+            "player_rater": {"AVG": ".280"},
             "espn_id": "12345",
         }
 
@@ -63,14 +63,6 @@ class TestESPNPlayer:
 
         assert player.__class__ is ESPNPlayer
         assert "Ronald" in player.name
-
-    def test_create_player_no_float_values(self, player_data):
-        player = ESPNPlayer.from_data(player_data)
-
-        assert player.__class__ is ESPNPlayer
-        assert "Ronald" in player.name
-        assert player.player_stats["SLG"] is None
-        assert isinstance(player.player_stats["HR"], float)
 
     def test_create_player_remove_rp_from_pos_player(self, player_data):
         player = ESPNPlayer.from_data(player_data)
