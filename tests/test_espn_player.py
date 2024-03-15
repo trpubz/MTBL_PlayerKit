@@ -29,6 +29,16 @@ class TestESPNPlayer:
         return bs.BeautifulSoup(data, "lxml").find_all("td")
 
     @pytest.fixture
+    def players_data(self):
+        fixtures_path = Path(__file__).parent / "fixtures"
+        players_data_path = fixtures_path / "players_data.html"
+        data = ""
+        with open(players_data_path, "r") as f:
+            data = f.read()
+
+        return bs.BeautifulSoup(data, "lxml").find_all("tr")
+
+    @pytest.fixture
     def player_dict(self):
         return {
             "name": "Ronald Acuna Jr.",
@@ -39,6 +49,14 @@ class TestESPNPlayer:
             "player_stats": {"AVG": ".280"},
             "espn_id": "12345",
         }
+
+    def test_create_players(self, players_data):
+        players = []
+        for player in players_data:
+            players.append(ESPNPlayer.from_data(player.find_all("td")))
+
+        assert len(players) > 2
+        assert isinstance(players[0], ESPNPlayer)
 
     def test_create_player(self, player_data):
         player = ESPNPlayer.from_data(player_data)
