@@ -14,7 +14,7 @@ class ESPNPlayer(Player):
     owner: str
     ovr: int
     positions: List[str] = []
-    player_rater: Dict[str, Any] = {}
+    player_stats: Dict[str, Any] = {}
     espn_id: str
 
     @classmethod
@@ -47,14 +47,14 @@ class ESPNPlayer(Player):
         # if the owner is not listed, then the player is a free agent and the splitting the text
         # will drop the waiver date and return only WA
         owner = data[2].get_text(strip=True).split(" ")[0]
-        player_rater = add_player_rater_data(data[3:], positions)
+        player_stats = add_player_rater_data(data[3:], positions)
 
         return cls(name=name,
                    ovr=ovr,
                    positions=positions,
                    team=team,
                    owner=owner,
-                   player_rater=player_rater,
+                   player_stats=player_stats,
                    espn_id=espn_id)
 
 
@@ -74,50 +74,46 @@ def add_player_rater_data(data: list, positions: list) -> dict[str: float]:
         if any(p for p in positions if "SP" not in p or "RP" not in p):
             match cat:
                 case "Runs Scored":
-                    player_rater.update({"R": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"R": safe_float(d.get_text(strip=True))})
                 case "Home Runs":
-                    player_rater.update({"HR": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"HR": safe_float(d.get_text(strip=True))})
                 case "Runs Batted In":
-                    player_rater.update({"RBI": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"RBI": safe_float(d.get_text(strip=True))})
                 case "Net Stolen Bases":
-                    player_rater.update({"SBN": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"SBN": safe_float(d.get_text(strip=True))})
                 case "On Base Pct":
-                    player_rater.update({"OBP": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"OBP": safe_float(d.get_text(strip=True))})
                 case "Slugging Pct":
-                    player_rater.update({"SLG": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"SLG": safe_float(d.get_text(strip=True))})
+
+            continue
         if any(p for p in positions if "SP" in p or "RP" in p):
             match cat:
                 case "Innings Pitched":
-                    player_rater.update({"IP": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"IP": safe_float(d.get_text(strip=True))})
                 case "Quality Starts":
-                    player_rater.update({"QS": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"QS": safe_float(d.get_text(strip=True))})
                 case "Earned Run Average":
-                    player_rater.update({"ERA": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"ERA": safe_float(d.get_text(strip=True))})
                 case "Walks plus Hits Per Innings Pitched":
-                    player_rater.update({"WHIP": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"WHIP": safe_float(d.get_text(strip=True))})
                 case "Strikeouts per 9 Innings":
-                    player_rater.update({"K/9": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"K/9": safe_float(d.get_text(strip=True))})
                 case "Saves Plus Holds":
-                    player_rater.update({"SVHD": float(d.get_text(strip=True))})
-                    continue
+                    player_rater.update({"SVHD": safe_float(d.get_text(strip=True))})
+
+            continue
         match cat:
             case _ if re.match(".*rostered.*", cat):
-                player_rater.update({"%ROST": float(d.get_text(strip=True))})
+                player_rater.update({"%ROST": safe_float(d.get_text(strip=True))})
             case _ if re.match(".*Rating.*", cat):
-                try:
-                    player_rater.update({"PRTR": float(d.get_text(strip=True))})
-                except ValueError:  # will raise if the player rater is "--"
-                    player_rater.update({"PRTR": 0.0})
+                player_rater.update({"PRTR": safe_float(d.get_text(strip=True))})
 
     return player_rater
+
+
+def safe_float(text_value):
+    if text_value == "--":
+        return None
+    else:
+        return float(text_value)
