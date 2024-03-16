@@ -3,6 +3,7 @@ import pytest
 
 from mtbl_playerkit import ESPNPlayer
 from mtbl_playerkit.player_factory import PlayerFactory
+from mtbl_playerkit.src.mtbl_globals import ETLType
 
 
 class TestPlayerFactory:
@@ -14,13 +15,13 @@ class TestPlayerFactory:
             return f.read()
 
     def test_create_espn_player(self, players_data):
-        players = PlayerFactory.create_players("ESPN", players_data)
+        players = PlayerFactory.create_players("ESPN", players_data, ETLType.REG_SZN)
         assert len(players) > 0
         assert players[0].__class__ is ESPNPlayer
         assert isinstance(players, list)
 
     def test_create_player_bad_source(self, players_data):
         with pytest.raises(ValueError) as e:
-            players = PlayerFactory.create_players("BAD_SOURCE", players_data)
+            players = PlayerFactory.create_players("BAD_SOURCE", players_data, ETLType.REG_SZN)
 
         assert e.type is ValueError

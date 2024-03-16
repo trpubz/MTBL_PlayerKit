@@ -22,6 +22,7 @@ class PlayerFactory:
         match source:
             case "ESPN":
                 raw_players = bs.BeautifulSoup(args[0], "lxml").find_all("tr")
-                return [ESPNPlayer.from_data(player.find_all("td")) for player in raw_players]
+                return [ESPNPlayer.from_data(player.find_all("td"), args[1]) for player in
+                        raw_players]
             case _:
                 raise ValueError(f"Unknown data source: {source}")
